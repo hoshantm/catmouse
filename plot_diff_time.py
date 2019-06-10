@@ -4,11 +4,14 @@
 Created on Thu Jun  6 16:18:35 2019
 
 Surface plot of the difference of arrival time to the edge between the cat and
-the mouse starting from a distance "ratio" on the X axis for the mouse and
-angle beta for the cat.
+the mouse starting from a given distance " on the X axis for the mouse and
+an angle beta for the cat.
 
 Positive values represent initial conditions that allow a mouse escape with a
-difference of time represented by the z axis. 
+difference of time represented by the z axis.
+
+Zero or negative values indicate a failure to escape via a straight line
+starting from these initial conditions.
 
 
 @author: tarik
@@ -31,8 +34,8 @@ Y = np.arange(0, 2 * math.pi, 0.025)
 X, Y = np.meshgrid(X, Y)
 
 # Function to strip off alpha and get optimal distance only
-def f(ratio, beta):
-    return catmouse.maxDiffTimeCatMouse(ratio, beta)[1]
+def f(distance, beta):
+    return catmouse.maxDiffTimeCatMouse(distance, beta)[1]
 
 # Calculate distance difference. Positive means safe zone
 Z = np.vectorize(f)(X, Y)
@@ -48,10 +51,6 @@ surf = ax.plot_surface(X, Y, Z, cmap=cm.coolwarm, linewidth=0, antialiased=False
 ax.set_zlim(-7, 7)
 ax.zaxis.set_major_locator(LinearLocator(10))
 ax.zaxis.set_major_formatter(FormatStrFormatter('%.02f'))
-
-#ax.xaxis.label = 'beta (cat angle with X axis)'
-#ax.yaxis.label = 'distance from center (as a ratio of radius)'
-#ax.zaxis.label = 'Difference in arrival time (positive means escape)'
 
 # Add a color bar which maps values to colors.
 fig.colorbar(surf, shrink=0.5, aspect=5)
