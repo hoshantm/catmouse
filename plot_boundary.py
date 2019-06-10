@@ -13,7 +13,7 @@ path is calculated by spyral_path.py
 
 The intersection between the upper success region and the region below the
 red line represent a set of initial positions that are reachable by maneuvering
-from the center, and guarateing an escape route through a straight line.
+from the center, and guaranteing an escape route through a straight line.
 The point of escape can be found using catmouse.maxDiffTimeCatMouse function.
 
 @author: tarik
@@ -25,9 +25,9 @@ from catmouse import getBoundary
 import matplotlib.pyplot as plt
 import math
 
-betas, ratios = getBoundary()
+betas, distances = getBoundary()
 
-plt.scatter(betas, ratios, s=1)
+plt.scatter(betas, distances, s=1)
 
 plt.plot([0, 2 * math.pi],
                 [1/CAT_TO_MOUSE_SPEED_RATIO,
@@ -35,6 +35,6 @@ plt.plot([0, 2 * math.pi],
 
 plt.xlim(0, 2 * math.pi)
 plt.ylim(0, 1)
-plt.xlabel('beta (angle of cat with X axis in radian)')
-plt.ylabel('distance from center (as a fraction of the radius)')
+plt.xlabel('angle of cat with X axis in radian')
+plt.ylabel('distance from center')
 plt.title = 'Escape region boundary plot'
