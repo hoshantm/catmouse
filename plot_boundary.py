@@ -19,21 +19,22 @@ The point of escape can be found using catmouse.maxDiffTimeCatMouse function.
 @author: tarik
 """
 
-import catmouse
+from catmouse import CAT_TO_MOUSE_SPEED_RATIO
+from catmouse import getBoundary
+
 import matplotlib.pyplot as plt
 import math
 
-betas, ratios = catmouse.getBoundary()
+betas, ratios = getBoundary()
 
 plt.scatter(betas, ratios, s=1)
 
 plt.plot([0, 2 * math.pi],
-                [1/catmouse.CAT_TO_MOUSE_SPEED_RATIO,
-                 1/catmouse.CAT_TO_MOUSE_SPEED_RATIO], 'r-')
+                [1/CAT_TO_MOUSE_SPEED_RATIO,
+                 1/CAT_TO_MOUSE_SPEED_RATIO], 'r-')
 
 plt.xlim(0, 2 * math.pi)
 plt.ylim(0, 1)
 plt.xlabel('beta (angle of cat with X axis in radian)')
 plt.ylabel('distance from center (as a fraction of the radius)')
 plt.title = 'Escape region boundary plot'
-
