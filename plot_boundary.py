@@ -38,3 +38,5 @@ plt.ylim(0, 1)
 plt.xlabel('angle of cat with X axis in radian')
 plt.ylabel('distance from center')
 plt.title = 'Escape region boundary plot'
+
+plt.show()
