@@ -14,7 +14,8 @@ center, until it reaches a radius equal to 1 / CAT_TO_MOUSE_SPEED_RATIO,
 assuming a radius of 1. All of the assumptions above do not have any effect
 on the nature of the solution. Scaling and rotation can fix that. A change of
 cat direction would require the mouse to change its rotation direction
-instantly and follow a mirror image of the remainder of the original path.
+instantly and follow a mirror image of the remainder of the escape path
+in relation with the radius passing by the current mouse location.
 
 The path is the solution of the following diffential equation:
 sqrt(r'^2 + r^2) = 1/4
@@ -84,5 +85,3 @@ y2 = math.sin(theta2) * r2
 speed = math.sqrt((x2 - x1)**2 + (y2 - y1)**2) / epsilon
 speed = round(speed, 10)
 print(speed)
-
-
