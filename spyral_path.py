@@ -46,18 +46,18 @@ inc = math.pi / 2 / INTERVALS
 thetas = [i * inc for i in range(INTERVALS + 1)]
 rs = [math.sin(theta) / 4 for theta in thetas]
 
-# Transform to cartesian coordinates
-xs = [math.cos(thetas[i]) * rs[i] for i in range(INTERVALS+1)]
-ys = [math.sin(thetas[i]) * rs[i] for i in range(INTERVALS+1)]
-
-plt.scatter(xs, ys, s=1)
-plt.xlim(-0.3, 0.3)
-plt.ylim(-0.3, 0.3)
+ax = plt.subplot(111, projection='polar')
+ax.plot(thetas, rs)
 
 # draw circle
-xs = [math.cos(math.pi * 2 / INTERVALS * i) / 4.0 for i in range(INTERVALS+1)]
-ys = [math.sin(math.pi * 2 / INTERVALS * i) / 4.0 for i in range(INTERVALS+1)]
-plt.scatter(xs, ys, s=1)
+thetas2 = [2 * math.pi / INTERVALS * i for i in range(INTERVALS+1)]
+rs2 = [1.0 / 4.0 for i in range(INTERVALS+1)]
+ax.plot(thetas2, rs2)
+
+ax.set_rmax(1)
+ax.set_rticks([0.25, 0.5, 0.75, 1])  # less radial ticks
+ax.set_rlabel_position(-22.5)  # get radial labels away from plotted line
+ax.grid(True)
 
 plt.show()
 
