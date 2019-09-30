@@ -11,6 +11,9 @@ import pygame
 from pygame import time
 import math
 from pygame import gfxdraw
+import catmouse
+
+FRAME_RATE = 1000
 
 SCREEN_SIZE = 650
 MARGIN = 100
@@ -25,13 +28,15 @@ MOUSE_COLOR = (0, 255, 0)
 CIRCLE_COLOR = (255, 255, 255)
     
 CAT_VELOCITY = 2.0
-VELOCITY_RATIO = 4.0
+VELOCITY_RATIO = 4.33
 MOUSE_VELOCITY = CAT_VELOCITY / VELOCITY_RATIO
 
 DISTANCE_TOLERANCE = 5E-3
 
 # define a main function
 def main():
+
+    catmouse.CAT_TO_MOUSE_SPEED_RATIO = VELOCITY_RATIO
      
     # initialize the pygame module
     pygame.init()
@@ -82,7 +87,7 @@ def main():
         
         pygame.display.flip()
 
-        clock.tick(1000)     
+        clock.tick(FRAME_RATE)    
         
 def get_updated_cat_position(clock, cat_direction, cat_position):
     cat_position += cat_direction * CAT_VELOCITY * clock.get_time() / 1000.0
@@ -134,19 +139,19 @@ def draw_mouse(screen, mouse_position):
     screen_x, screen_y = mouse_position_to_screen_coordinates(mouse_position)
     pygame.gfxdraw.filled_circle(screen, screen_x, screen_y, MOUSE_RADIUS, MOUSE_COLOR)
               
-def get_mouse_move(cat_position, mouse_position, velocity_ratio):
+def get_mouse_move_human(cat_position, mouse_position, velocity_ratio):
     screen_x, screen_y = pygame.mouse.get_pos()
     pointer_x, pointer_y = screen_coordinates_to_mouse_position((screen_x, screen_y))
     mouse_x = mouse_position[0]
     mouse_y = mouse_position[1]
     distance = math.sqrt((pointer_x - mouse_x) ** 2 + (pointer_y - mouse_y) ** 2)
-    if distance < DISTANCE_TOLERANCE / 4:
+    if distance < DISTANCE_TOLERANCE:
         return (0, 0)
     v_x = (pointer_x - mouse_x) / distance
     v_y = (pointer_y - mouse_y) / distance
     return (v_x, v_y)
 
-def get_cat_move(cat_position, mouse_position, velocity_ratio):
+def get_cat_move_auto(cat_position, mouse_position, velocity_ratio):
     mouse_x = mouse_position[0]
     mouse_y = mouse_position[1]
     if (mouse_x == 0 and mouse_y == 0):
@@ -155,9 +160,8 @@ def get_cat_move(cat_position, mouse_position, velocity_ratio):
     mouse_angle = math.atan2(mouse_y, mouse_x)
     if mouse_angle < 0:
         mouse_angle += 2 * math.pi
-        
-    
-    if abs(mouse_angle - cat_position) < DISTANCE_TOLERANCE / 4:
+            
+    if abs(mouse_angle - cat_position) < DISTANCE_TOLERANCE:
         cat_move = 0
     else:
         diff = mouse_angle - cat_position
@@ -183,12 +187,81 @@ def mouse_escaped(mouse_position):
     mouse_x = mouse_position[0]
     mouse_y = mouse_position[1]
     
-    return mouse_x ** 2 + mouse_y ** 2 >= 1
-    
+    return mouse_x ** 2 + mouse_y ** 2 >= 1    
+
+class mouse_auto:
+    def __init__(self):
+        self.phase = 0
+
+    def get_move(self, cat_position, mouse_position, velocity_ratio):
+        mouse_x = mouse_position[0]
+        mouse_y = mouse_position[1]
+        mouse_r = math.sqrt(mouse_x ** 2 + mouse_y ** 2)
+        mouse_angle = math.atan2(mouse_y, mouse_x)
+        if mouse_angle < 0:
+            mouse_angle += 2 * math.pi
+
+        if self.phase == 0:
+            target_angle = cat_position + math.pi
+            if target_angle > 2 * math.pi:
+                target_angle -= 2 * math.pi
+
+            if abs(target_angle - mouse_angle) < DISTANCE_TOLERANCE:
+                if mouse_r < 1 / velocity_ratio - DISTANCE_TOLERANCE:
+                    v_x = math.cos(mouse_angle)
+                    v_y = math.sin(mouse_angle)
+                    return (v_x, v_y)
+                elif mouse_r > 1 / velocity_ratio:
+                    v_x = -math.cos(mouse_angle)
+                    v_y = -math.sin(mouse_angle)
+                    return (v_x, v_y)
+                else:
+                    self.phase = 1
+                    return (0, 0)
+            else:
+                diff = target_angle - mouse_angle
+                if diff < 0:
+                    diff += 2 * math.pi
+                if 0 < diff < math.pi:
+                    angle_direction = 1
+                else:
+                    angle_direction = -1
+
+                if mouse_r < 1 / velocity_ratio - DISTANCE_TOLERANCE:
+                    v_r = math.sqrt(1/velocity_ratio ** 2 - mouse_r ** 2)
+                    v_t = math.sqrt(1 - v_r ** 2)
+                    v_x = math.cos(mouse_angle) * v_r + angle_direction * math.cos(mouse_angle + math.pi / 2) * v_t
+                    v_y = math.sin(mouse_angle) * v_r + angle_direction * math.sin(mouse_angle + math.pi / 2) * v_t
+                    return (v_x, v_y)
+                elif mouse_r > 1 / velocity_ratio:
+                    v_x = -math.cos(mouse_angle)
+                    v_y = -math.sin(mouse_angle)
+                    return (v_x, v_y)
+                else:
+                    v_x = angle_direction * math.cos(mouse_angle + math.pi / 2)
+                    v_y = angle_direction * math.sin(mouse_angle + math.pi / 2)
+                    return (v_x, v_y)
+        else:
+            mouse_angle = mouse_angle - cat_position
+            if mouse_angle < 0:
+                mouse_angle += 2 * math.pi
+
+            escape_angle = catmouse.maxDiffTimeCatMouse(mouse_r, mouse_angle)[0]
+            escape_angle = escape_angle + cat_position
+            if escape_angle > 2 * math.pi:
+                escape_angle -= 2 * math.pi
+
+            v_x = math.cos(escape_angle)
+            v_y = math.sin(escape_angle)
+            return (v_x, v_y)
 
 # run the main function only if this module is executed as the main script
 # (if you import this as a module then nothing is executed)
 if __name__=="__main__":
+    # Set player functions
+    get_cat_move = get_cat_move_auto
+    get_mouse_move = mouse_auto().get_move
+
     # call the main function
     main()
     pygame.quit()
