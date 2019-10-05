@@ -21,14 +21,14 @@ RADIUS = (SCREEN_SIZE - MARGIN) // 2
 CENTER_X = SCREEN_SIZE // 2
 CENTER_Y = SCREEN_SIZE // 2
     
-CAT_RADIUS = 5
+CAT_RADIUS = 3
 MOUSE_RADIUS = CAT_RADIUS
 CAT_COLOR = (255, 0, 0)
 MOUSE_COLOR = (0, 255, 0)
 CIRCLE_COLOR = (255, 255, 255)
     
 CAT_VELOCITY = 2.0
-VELOCITY_RATIO = 4.33
+VELOCITY_RATIO = 4
 MOUSE_VELOCITY = CAT_VELOCITY / VELOCITY_RATIO
 
 DISTANCE_TOLERANCE = 5E-3
@@ -151,7 +151,14 @@ def get_mouse_move_human(cat_position, mouse_position, velocity_ratio):
     v_y = (pointer_y - mouse_y) / distance
     return (v_x, v_y)
 
-def get_cat_move_auto(cat_position, mouse_position, velocity_ratio):
+def get_cat_move(cat_position, mouse_position, velocity_ratio):
+    if pygame.key.get_pressed()[pygame.K_LEFT]:
+        return -1
+    elif pygame.key.get_pressed()[pygame.K_RIGHT]:
+        return 1
+    elif pygame.key.get_mods() & pygame.KMOD_CAPS or pygame.key.get_pressed()[pygame.K_DOWN]:
+        return 0
+
     mouse_x = mouse_position[0]
     mouse_y = mouse_position[1]
     if (mouse_x == 0 and mouse_y == 0):
@@ -201,24 +208,41 @@ class mouse_auto:
         if mouse_angle < 0:
             mouse_angle += 2 * math.pi
 
+        '''
+        Phase 0: Progress from the center to a radius of
+        1 / velocity_ratio while staying on a diametrically
+        oposite angle from the cat. This is possible within
+        the circle of radius of 1 / velocity_ratio because the
+        angular velocity of the mouse can be keep up with the
+        angular velocity of the cat.
+        ''' 
         if self.phase == 0:
+            # Angle diametrically opposite to the cat
             target_angle = cat_position + math.pi
             if target_angle > 2 * math.pi:
                 target_angle -= 2 * math.pi
 
+            # If the mouse is equal to the target angle within a small tolerance
             if abs(target_angle - mouse_angle) < DISTANCE_TOLERANCE:
+                # Continue progressing outward until 1 / velocity_ratio is reached
                 if mouse_r < 1 / velocity_ratio - DISTANCE_TOLERANCE:
                     v_x = math.cos(mouse_angle)
                     v_y = math.sin(mouse_angle)
                     return (v_x, v_y)
+                # 1 / velocity_ratio has been passed, backtrack a bit
                 elif mouse_r > 1 / velocity_ratio:
                     v_x = -math.cos(mouse_angle)
                     v_y = -math.sin(mouse_angle)
                     return (v_x, v_y)
+                # All is well, the mouse has gone as far as possible outward
+                # while staying diametrically opposite the cat. It's now time
+                # to dash towards the outer rim.
                 else:
                     self.phase = 1
                     return (0, 0)
+            # Mouse is not diametrically opposit the cat
             else:
+                # Determine if it is falling behind or is ahead.
                 diff = target_angle - mouse_angle
                 if diff < 0:
                     diff += 2 * math.pi
@@ -227,20 +251,32 @@ class mouse_auto:
                 else:
                     angle_direction = -1
 
+                # If the mouse has not reached the distance of 1 / velocity_ratio,
+                # continue progressing but also move in a tangent to keep up with
+                # the cat and stay diametrically opposite.
                 if mouse_r < 1 / velocity_ratio - DISTANCE_TOLERANCE:
                     v_r = math.sqrt(1/velocity_ratio ** 2 - mouse_r ** 2)
                     v_t = math.sqrt(1 - v_r ** 2)
                     v_x = math.cos(mouse_angle) * v_r + angle_direction * math.cos(mouse_angle + math.pi / 2) * v_t
                     v_y = math.sin(mouse_angle) * v_r + angle_direction * math.sin(mouse_angle + math.pi / 2) * v_t
                     return (v_x, v_y)
+                # If the mouse has passed 1 / velocity_ratio, backtrack. Otherwise
+                # the mouse will not be able to keep up with the cat in terms of rotation.
                 elif mouse_r > 1 / velocity_ratio:
                     v_x = -math.cos(mouse_angle)
                     v_y = -math.sin(mouse_angle)
                     return (v_x, v_y)
+                # The mouse is close to the edge of the circle with radius 1 / velocity_ratio
+                # Keep rotating to ensure the mouse is diametrically opposite the cat within an
+                # acceptable tolerance.
                 else:
                     v_x = angle_direction * math.cos(mouse_angle + math.pi / 2)
                     v_y = angle_direction * math.sin(mouse_angle + math.pi / 2)
                     return (v_x, v_y)
+        # The mouse has progressed a far as it could while staying diametrically
+        # opposite the cat. It is now time to progress towards the outer rim
+        # in such a way that no matter what the cat does (what direction it takes)
+        # it will not be able to get to the mouse on time.
         else:
             mouse_angle = mouse_angle - cat_position
             if mouse_angle < 0:
@@ -258,10 +294,25 @@ class mouse_auto:
 # run the main function only if this module is executed as the main script
 # (if you import this as a module then nothing is executed)
 if __name__=="__main__":
-    # Set player functions
-    get_cat_move = get_cat_move_auto
-    get_mouse_move = mouse_auto().get_move
+    print('The cat cat be fully controlled by having caps ON and using the left and right arrow. Having the caps OFF, you can stop the cat movement by pressing the down arrow.')
+    mouse_user = input('Input \'a\' if you want the computer to control the mouse, press enter otherwise: ')
+    if mouse_user == 'a':
+        get_mouse_move = mouse_auto().get_move
+    else:
+        get_mouse_move = get_mouse_move_human
+
+    str_velocity_ratio = input('Input cat to mouse velocity ratio (0.1 to 10) or press enter to keep the default of 4: ')
+    try:
+        VELOCITY_RATIO = float(str_velocity_ratio)
+        if VELOCITY_RATIO < 0.1:
+            VELOCITY_RATIO = 0.1
+        elif VELOCITY_RATIO > 10:
+            VELOCITY_RATIO = 10
+        MOUSE_VELOCITY = CAT_VELOCITY / VELOCITY_RATIO
+    except:
+        pass
 
     # call the main function
     main()
     pygame.quit()
+    input('Press any key to exit')
