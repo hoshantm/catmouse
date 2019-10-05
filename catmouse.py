@@ -115,9 +115,9 @@ has a guaranteed escape. The bottom region are failure start positions.
 '''
 def getBoundary():
     interval_size = math.pi * 2 / ANGLE_INTERVALS
-    betas = [i * interval_size for i in range(ANGLE_INTERVALS + 1)]
-    distances = [minimumEscapeDistance(beta) for beta in betas]
+    alphas = [i * interval_size for i in range(ANGLE_INTERVALS + 1)]
+    distances = [minimumEscapeDistance(alpha) for alpha in alphas]
     if DEBUG:
-        for i, beta in enumerate(betas):
-            print (i, beta, distances[i])
-    return betas, distances
+        for i, alpha in enumerate(alphas):
+            print (i, alpha, distances[i])
+    return alphas, distances
