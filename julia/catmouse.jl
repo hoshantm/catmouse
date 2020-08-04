@@ -50,6 +50,32 @@ function tangent_angles(r, x, y)
 end
 
 #=
+Given a line with equation y = ax + b and a circle with
+radius r and center (0, 0) determine the angles of the 
+intersection between the line and the circle. 
+=#
+function intersection_angles(r, a, b)
+    if (r <= 0)
+        throw(DomainError("Zero or negative radius."))
+    end
+
+    if a == 0 && b == 0
+        [0, π]
+    elseif a != 0 && b != 0 && a^2 + 1 != 0 && r == b / a
+        [π, 2 * atan(a)]
+    elseif a != 0 && r == b / a
+        [π]
+    elseif b != a * r
+        d = (a^2+1)*r^2 - b^2
+        if d == 0
+            [2 * atan(r/(b-a*r))]
+        else
+            [2 * atan((r - sqrt(d)) / (b-a*r)), 2 * atan((r + sqrt(d)) / (b-a*r))]
+        end
+    end   
+end
+
+#=
 alpha, distance: Polar coordinates of point M representing the mouse.
 beta, 1: Polar coordinates of an arbitrary point P on the circle.
 Return value: Distance between M and P
