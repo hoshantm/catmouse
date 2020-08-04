@@ -14,8 +14,40 @@ effect on the solution or lack of solution for that matter.
 =#
 
 using Optim
-
 DEBUG = false
+
+#= Find angles for the two tangents to circle of radius 
+r and center (0, 0) and passing by point x, y =#
+function tangent_angles(r, x, y)
+    if (r <= 0)
+        throw(DomainError("Zero or negative radius."))
+    end
+
+    if x == r
+        [0]
+    elseif x == -r
+        [π]
+    elseif y == r
+        [π/2]
+    elseif y == -r
+        [3*π/2]
+    elseif x^2 + y^2 == r^2
+        θ = atan(y/x)
+        [θ]
+    elseif x^2 + y^2 > r^2
+        a = sqrt(-r^2+x^2+y^2)
+        b = x + r
+        θ1 = 2 * atan((y-a)/b)
+        θ1 = θ1 > 0 ? θ1 : θ1 + 2 * π
+        θ2 = 2 * atan((y+a)/b)
+        θ2 = θ2 > 0 ? θ2 : θ2 + 2 * π
+        [θ1, θ2]
+    elseif x^2 + y^2 < r^2
+        zeros(0)
+    else
+        throw(DomainError("Case not handled"))
+    end
+end
 
 #=
 alpha, distance: Polar coordinates of point M representing the mouse.
