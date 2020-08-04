@@ -133,7 +133,7 @@ shortest path from the mouse to the edge of the circle in not optimum.
 =#
 function maxDiffTimeCatMouse(distance, alpha, speed_ratio)
     #=
-    We difference in time between the mouse arriving at point P and the cat
+    The difference in time between the mouse arriving at point P and the cat
     arriving at point P is a piecewise function with two cases:
     - Case point P lies at an angle beta between 0 and PI in which case the 
       shortest path for the cat to reach P is beta.
