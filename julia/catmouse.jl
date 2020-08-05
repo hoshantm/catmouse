@@ -21,32 +21,36 @@ r and center (0, 0) and passing by point x, y =#
 function tangent_angles(r, x, y)
     if (r <= 0)
         throw(DomainError("Zero or negative radius."))
+    elseif x^2 + y^2 < r^2
+        throw(DomainError("Point located inside the circle."))
     end
 
-    if x == r
-        [0]
-    elseif x == -r
-        [π]
-    elseif y == r
-        [π/2]
-    elseif y == -r
-        [3*π/2]
-    elseif x^2 + y^2 == r^2
-        θ = atan(y/x)
-        [θ]
-    elseif x^2 + y^2 > r^2
-        a = sqrt(-r^2+x^2+y^2)
-        b = x + r
-        θ1 = 2 * atan((y-a)/b)
-        θ1 = θ1 > 0 ? θ1 : θ1 + 2 * π
-        θ2 = 2 * atan((y+a)/b)
-        θ2 = θ2 > 0 ? θ2 : θ2 + 2 * π
-        [θ1, θ2]
-    elseif x^2 + y^2 < r^2
-        zeros(0)
-    else
-        throw(DomainError("Case not handled"))
+    solutions = zeros(0)
+    if x == -r
+        θ = π
+        append!(solutions, θ)
     end
+
+    if r + x != 0 && r*x + x^2 + y^2 != y * sqrt(-r^2 + x^2 + y^2)
+        θ = 2 * atan((y-sqrt(-r^2 + x^2 + y^2))/(r+x))
+        append!(solutions, θ)
+    end
+
+    if r + x != 0 && y * (sqrt(-r^2 +x^2 + y^2) + y) + r*x + x^2 != 0
+        θ = 2 * atan((sqrt(-r^2 + x^2 + y^2)+y)/(r+x))
+        append!(solutions, θ)
+    end
+
+    if y != 0 && r^2 + y^2 != 0 && x == -r
+        θ = 2 * atan(r/y)
+        append!(solutions, θ)
+    end
+
+    if length(solutions) == 2 && solutions[1] == solutions[2]
+        solutions = [solutions[1]]
+    end
+
+    return solutions
 end
 
 #=
